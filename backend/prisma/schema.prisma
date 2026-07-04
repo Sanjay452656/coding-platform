@@ -7,3 +7,150 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id            String   @id @default(uuid())
+  username      String   @unique
+  email         String   @unique
+  passwordHash  String
+
+  role          Role     @default(USER)
+
+  rating        Int      @default(1500)
+
+  submissions   Submission[]
+  participations ContestParticipant[]
+  createdProblems Problem[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+model Problem {
+  id            String   @id @default(uuid())
+
+  title         String
+  slug          String   @unique
+
+  statement     String
+
+  constraints   String
+
+  examples      Json
+
+  difficulty    Difficulty
+
+  tags          String[]
+
+  createdById   String
+
+  creator       User @relation(fields: [createdById], references: [id])
+
+  contests      ContestProblem[]
+  submissions   Submission[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+enum ContestStatus {
+  UPCOMING
+  RUNNING
+  ENDED
+}
+
+model Contest {
+  id              String @id @default(uuid())
+
+  title           String
+  description     String
+
+  startTime       DateTime
+  endTime         DateTime
+
+  status          ContestStatus
+
+  problems        ContestProblem[]
+  participants    ContestParticipant[]
+  submissions     Submission[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model ContestProblem {
+  contestId String
+  problemId String
+
+  contest Contest @relation(fields: [contestId], references: [id])
+  problem Problem @relation(fields: [problemId], references: [id])
+
+  points Int
+
+  @@id([contestId, problemId])
+}
+
+model ContestParticipant {
+  contestId String
+  userId String
+
+  contest Contest @relation(fields: [contestId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+
+  score Int @default(0)
+  penalty Int @default(0)
+
+  joinedAt DateTime @default(now())
+
+  @@id([contestId, userId])
+}
+
+model Submission {
+  id String @id @default(uuid())
+
+  userId String
+  contestId String?
+  problemId String
+
+  code String
+
+  language Language
+
+  verdict Verdict @default(PENDING)
+
+  executionTime Int?
+  memoryUsed Int?
+
+  user User @relation(fields: [userId], references: [id])
+
+  contest Contest? @relation(fields: [contestId], references: [id])
+
+  problem Problem @relation(fields: [problemId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+enum Language {
+  JAVA
+}
+
+enum Verdict {
+  PENDING
+  ACCEPTED
+  WRONG_ANSWER
+  TIME_LIMIT_EXCEEDED
+  MEMORY_LIMIT_EXCEEDED
+  RUNTIME_ERROR
+  COMPILATION_ERROR
+}
+
