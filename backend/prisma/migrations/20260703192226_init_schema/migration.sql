@@ -7,6 +7,7 @@ CREATE TYPE "Difficulty" AS ENUM ('EASY', 'MEDIUM', 'HARD');
 -- CreateEnum
 CREATE TYPE "ContestStatus" AS ENUM ('UPCOMING', 'RUNNING', 'ENDED');
 
+
 -- CreateEnum
 CREATE TYPE "Language" AS ENUM ('JAVA');
 
